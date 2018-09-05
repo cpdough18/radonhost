@@ -46,10 +46,7 @@ Shows the last 10 log items
 `log <category>`
 
 `log <user>`
-
-
 ***
-
 # General Commands
 
 ## Ping
@@ -60,7 +57,7 @@ Displays the bot's latency
 Shows some basic information about the bot
 
 `info`
-## Serverinfo
+## Server info
 Shows information about this server
 
 `serverinfo`
@@ -133,7 +130,7 @@ Returns a lenny ( ͡° ͜ʖ ͡°)
 Returns a meme
 
 `meme`
-## Wikihow
+## WikiHow
 Returns random wikihow image
 
 `wikihow`
@@ -162,7 +159,7 @@ Sends a tombstone with a custom text
 
 `rip <text>`
 ## Sign
-Sends a roadsign with a custom text
+Sends a road sign with a custom text
 
 `sign <text>`
 ## Qr
@@ -345,5 +342,5 @@ Evaluates provided code and returns the result
 
 `eval <code>`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMzMjYyNjgwNiwyNjM4MDI1MV19
+eyJoaXN0b3J5IjpbLTE0ODUwOTQxOCwyNjM4MDI1MV19
 -->
