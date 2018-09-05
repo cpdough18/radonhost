@@ -166,12 +166,12 @@ Sends a road sign with a custom text
 Creates a qr code
 
 `qr <text>`
-## Ascii
-Converts text to ascii
+## ASCII
+Converts text to ASCII
 
 `ascii <text>`
-## Gif
-Sends a random gif or one with your tag
+## GIF
+Sends a random GIF related to your tag
 
 `gif `
 
@@ -342,5 +342,5 @@ Evaluates provided code and returns the result
 
 `eval <code>`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0ODUwOTQxOCwyNjM4MDI1MV19
+eyJoaXN0b3J5IjpbLTEyMDczNzQ4MjksMjYzODAyNTFdfQ==
 -->
