@@ -225,7 +225,7 @@ Lets you add/remove custom prefixes
 `prefix remove <prefix>`
 
 `prefix clear`
-## Joinmessage
+## Join message
 Lets you set custom join messages
 
 `joinmessage `
@@ -236,8 +236,8 @@ Lets you set custom join messages
 
 `joinmessage clear`
 
-## Leavemessage
-Lets you set custom leavemessages
+## Leave message
+Lets you set custom leave messages
 
 `leavemessage `
 
@@ -254,7 +254,7 @@ Lets you set custom message color
 `color <color>`
 
 `color <r> <g> <b>`
-## Logchannel
+## Log channel
 Lets you set the log channel
 
 `logchannel `
@@ -262,7 +262,7 @@ Lets you set the log channel
 `logchannel <channel>`
 
 `logchannel remove`
-## Announcechannel
+## Announce channel
 Lets you set the announce channel
 
 `announcechannel `
@@ -270,8 +270,8 @@ Lets you set the announce channel
 `announcechannel <channel>`
 
 `announcechannel remove`
-## Autorole
-Lets you set the autorole (every joining user gets this role
+## Auto role
+Lets you set the auto role (every joining user gets this role
 
 `autorole `
 
@@ -286,7 +286,7 @@ Lets you edit the settings
 `settings enable <setting>`
 
 `settings disable <setting>`
-## Channelsettings
+## Channel settings
 Lets you edit the settings of the current channel
 
 `channelsettings `
@@ -315,8 +315,8 @@ Sends a random hentai picture :D
 Sends some nice nudes :P
 
 `nude`
-## Nudegif
-Sends a nice nude gif d:
+## Nude GIF
+Sends a nice nude GIF d:
 
 `nudegif`
 ## Anal
@@ -337,10 +337,10 @@ Sends a melon with a hole
 
 # Owner Commands
 
-## Eval
+## Evaluate
 Evaluates provided code and returns the result
 
 `eval <code>`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyMDczNzQ4MjksMjYzODAyNTFdfQ==
+eyJoaXN0b3J5IjpbMTczNjQxNzk4MCwyNjM4MDI1MV19
 -->
