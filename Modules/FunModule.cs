@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using System.Web;
+﻿#region
 using Discord;
 using Discord.Commands;
 using GiphyDotNet.Manager;
@@ -11,7 +6,13 @@ using GiphyDotNet.Model.Parameters;
 using Newtonsoft.Json.Linq;
 using Radon.Core;
 using Radon.Services;
-
+using System;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using System.Web;
+#endregion
 namespace Radon.Modules
 {
     [CommandCategory(CommandCategory.Fun)]
@@ -20,12 +21,12 @@ namespace Radon.Modules
     {
         private readonly Configuration _configuration;
         private readonly Giphy _giphy;
-        private readonly HttpClient _http;
+        private readonly HttpClient _httpClient;
         private readonly Random _random;
 
         public FunModule(HttpClient http, Random random, Configuration configuration, Giphy giphy)
         {
-            _http = http;
+            _httpClient = http;
             _random = random;
             _configuration = configuration;
             _giphy = giphy;
@@ -39,22 +40,33 @@ namespace Radon.Modules
             string url;
             do
             {
-                url = $"http://random.dog/{await _http.GetStringAsync("https://random.dog/woof")}";
+                url = $"http://random.dog/{await _httpClient.GetStringAsync("https://random.dog/woof")}";
             } while (url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
                      url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase));
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithImageUrl(url);
             await ReplyEmbedAsync(embed);
         }
-
+        [Command("Cat")]
+        [Alias("kitty")]
+        [Summary("Returns a random cat image")]
+        public async Task CatAsync()
+        {
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", _configuration.CatApiKey);
+            JArray data = JArray.Parse(await _httpClient.GetStringAsync($"https://api.thecatapi.com/v1/images/search?format=json&size=full"));
+            EmbedBuilder embed = new EmbedBuilder()
+                .WithTitle("Kitty")
+                .WithImageUrl(data[0]["url"].ToString());
+            await ReplyEmbedAsync(embed);
+        }
         [Command("fox")]
         [Summary("Returns a random fox image")]
         public async Task FoxAsync()
         {
-            var url = $"{JObject.Parse(await _http.GetStringAsync("https://randomfox.ca/floof/"))["image"]}";
+            string url = $"{JObject.Parse(await _httpClient.GetStringAsync("https://randomfox.ca/floof/"))["image"]}";
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithImageUrl(url);
 
             await ReplyEmbedAsync(embed);
@@ -64,9 +76,9 @@ namespace Radon.Modules
         [Summary("8Ball will answer your question!")]
         public async Task EightballAsync([Remainder] string question)
         {
-            var data = JObject.Parse(await _http.GetStringAsync("https://nekos.life/api/v2/8ball"));
+            JObject data = JObject.Parse(await _httpClient.GetStringAsync("https://nekos.life/api/v2/8ball"));
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithTitle("8Ball has spoken")
                 .WithDescription($"Question ❯ {question}\n\n8Ball's answer ❯ {data["response"]}")
                 .WithThumbnailUrl($"{data["url"]}");
@@ -78,7 +90,7 @@ namespace Radon.Modules
         [Summary("Tells a random joke :p")]
         public async Task JokeAsync()
         {
-            var joke = $"{JObject.Parse(await _http.GetStringAsync("http://api.yomomma.info/"))["joke"]}";
+            string joke = $"{JObject.Parse(await _httpClient.GetStringAsync("http://api.yomomma.info/"))["joke"]}";
             await ReplyAsync(joke);
         }
 
@@ -86,7 +98,7 @@ namespace Radon.Modules
         [Summary("Returns a lenny ( ͡° ͜ʖ ͡°)")]
         public async Task LennyAsync()
         {
-            var lennys = new[]
+            string[] lennys = new[]
             {
                 "( ͡° ͜ʖ ͡°)", "(☭ ͜ʖ ☭)", "(ᴗ ͜ʖ ᴗ)", "( ° ͜ʖ °)", "( ͡◉ ͜ʖ ͡◉)", "( ͡☉ ͜ʖ ͡☉)", "( ͡° ͜ʖ ͡°)>⌐■-■",
                 "<:::::[]=¤ (▀̿̿Ĺ̯̿̿▀̿ ̿)", "( ͡ಥ ͜ʖ ͡ಥ)", "( ͡º ͜ʖ ͡º )", "( ͡ಠ ʖ̯ ͡ಠ)", "ᕦ( ͡°╭͜ʖ╮͡° )ᕤ", "( ♥ ͜ʖ ♥)",
@@ -101,22 +113,22 @@ namespace Radon.Modules
         [Summary("Returns a meme")]
         public async Task MemeAsync()
         {
-            _http.DefaultRequestHeaders.Authorization =
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Token", $"{_configuration.KsoftApiKey}");
             JObject data;
             do
             {
-                data = JObject.Parse(await _http.GetStringAsync("https://api.ksoft.si/meme/random-meme"));
+                data = JObject.Parse(await _httpClient.GetStringAsync("https://api.ksoft.si/meme/random-meme"));
             } while (data.Value<bool>("nsfw"));
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithTitle($"{data["title"]}")
                 .WithUrl($"{data["source"]}")
                 .WithImageUrl($"{data["image_url"]}");
 
             await ReplyEmbedAsync(embed);
 
-            _http.DefaultRequestHeaders.Authorization = null;
+            _httpClient.DefaultRequestHeaders.Authorization = null;
         }
 
         [Command("wikihow")]
@@ -124,20 +136,20 @@ namespace Radon.Modules
         [Summary("Returns random wikihow image")]
         public async Task WikiHowAsync()
         {
-            _http.DefaultRequestHeaders.Authorization =
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Token", $"{_configuration.KsoftApiKey}");
             JObject data;
 
-            data = JObject.Parse(await _http.GetStringAsync("https://api.ksoft.si/meme/random-wikihow"));
+            data = JObject.Parse(await _httpClient.GetStringAsync("https://api.ksoft.si/meme/random-wikihow"));
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithTitle($"{data["title"]}")
                 .WithUrl($"{data["article_url"]}")
                 .WithImageUrl($"{data["url"]}");
 
             await ReplyEmbedAsync(embed);
 
-            _http.DefaultRequestHeaders.Authorization = null;
+            _httpClient.DefaultRequestHeaders.Authorization = null;
         }
 
         [Command("out")]
@@ -149,7 +161,7 @@ namespace Radon.Modules
         }
 
         [Command("say")]
-        [Alias("echo","e","s")]
+        [Alias("echo", "e", "s")]
         [Summary("Echoes text")]
         public async Task SayAsync([Remainder] string text)
         {
@@ -161,22 +173,22 @@ namespace Radon.Modules
         [Summary("Shows a dumbass how to google")]
         public async Task ShowGoogleAsync([Remainder] string query)
         {
-            var url = $"http://lmgtfy.com/?q={HttpUtility.UrlEncode(query)}";
+            string url = $"http://lmgtfy.com/?q={HttpUtility.UrlEncode(query)}";
             await ReplyAsync(url);
         }
 
         [Command("aww")]
-        [Alias("awh","cute")]
+        [Alias("awh", "cute")]
         [Summary("Returns random image from r/aww")]
         public async Task AwwAsync()
         {
-            _http.DefaultRequestHeaders.Authorization =
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Token", $"{_configuration.KsoftApiKey}");
             JObject data;
 
-            data = JObject.Parse(await _http.GetStringAsync("https://api.ksoft.si/meme/random-aww"));
+            data = JObject.Parse(await _httpClient.GetStringAsync("https://api.ksoft.si/meme/random-aww"));
 
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithTitle($"{data["subreddit"]} | {data["title"]}")
                 .WithUrl($"{data["source"]}")
                 .WithImageUrl($"{data["image_url"]}")
@@ -184,23 +196,23 @@ namespace Radon.Modules
 
             await ReplyEmbedAsync(embed);
 
-            _http.DefaultRequestHeaders.Authorization = null;
+            _httpClient.DefaultRequestHeaders.Authorization = null;
         }
 
         [Command("subreddit")]
-        [Alias("reddit", "sub","r","r/","sr","sreddit")]
+        [Alias("reddit", "sub", "r", "r/", "sr", "sreddit")]
         [Summary("Returns random image from specified subreddit")]
         public async Task SubredditAsync(string subreddit)
         {
             try
             {
-                _http.DefaultRequestHeaders.Authorization =
+                _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Token", $"{_configuration.KsoftApiKey}");
                 JObject data;
 
-                data = JObject.Parse(await _http.GetStringAsync($"https://api.ksoft.si/meme/rand-reddit/{subreddit}"));
+                data = JObject.Parse(await _httpClient.GetStringAsync($"https://api.ksoft.si/meme/rand-reddit/{subreddit}"));
 
-                var embed = new EmbedBuilder()
+                EmbedBuilder embed = new EmbedBuilder()
                     .WithTitle($"{data["subreddit"]} | {data["title"]}")
                     .WithUrl($"{data["source"]}")
                     .WithImageUrl($"{data["image_url"]}")
@@ -208,9 +220,9 @@ namespace Radon.Modules
 
                 await ReplyEmbedAsync(embed);
 
-                _http.DefaultRequestHeaders.Authorization = null;
+                _httpClient.DefaultRequestHeaders.Authorization = null;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
@@ -221,7 +233,7 @@ namespace Radon.Modules
         [Summary("Sends a tombstone with a custom text")]
         public async Task RipAsync([Remainder] string text)
         {
-            var url = "http://tombstonebuilder.com/generate.php" +
+            string url = "http://tombstonebuilder.com/generate.php" +
                       "?top1=R.I.P." +
                       $"&top2={HttpUtility.UrlEncode(text.Substring(0, Math.Min(text.Length, 25)))}" +
                       $"{(text.Length > 25 ? $"&top3={HttpUtility.UrlEncode(text.Substring(25, Math.Min(25, text.Length - 25)))}" : "")}" +
@@ -234,7 +246,7 @@ namespace Radon.Modules
         [Summary("Sends a roadsign with a custom text")]
         public async Task SignAsync([Remainder] string text)
         {
-            var url = $"http://www.customroadsign.com/generate.php" +
+            string url = $"http://www.customroadsign.com/generate.php" +
                       $"?line1={HttpUtility.UrlEncode(text.Substring(0, Math.Min(15, text.Length)))}" +
                       $"{(text.Length > 15 ? $"&line2={HttpUtility.UrlEncode(text.Substring(15, Math.Min(15, text.Length - 15)))}" : "")}" +
                       $"{(text.Length > 30 ? $"&line3={HttpUtility.UrlEncode(text.Substring(30, Math.Min(30, text.Length - 30)))}" : "")}" +
@@ -256,7 +268,7 @@ namespace Radon.Modules
         public async Task AsciiAsync([Remainder] string text)
         {
             await ReplyAsync(
-                $"{await _http.GetStringAsync($"http://artii.herokuapp.com/make?text={text}")}".BlockCode());
+                $"{await _httpClient.GetStringAsync($"http://artii.herokuapp.com/make?text={text}")}".BlockCode());
         }
 
         [Group("gif")]
@@ -279,8 +291,8 @@ namespace Radon.Modules
             [Priority(-1)]
             public async Task GifAsync()
             {
-                var gif = await _giphy.RandomGif(new RandomParameter());
-                var embed = new EmbedBuilder()
+                GiphyDotNet.Model.Results.GiphyRandomResult gif = await _giphy.RandomGif(new RandomParameter());
+                EmbedBuilder embed = new EmbedBuilder()
                     .WithImageUrl(gif.Data.ImageUrl);
 
                 await ReplyEmbedAsync(embed);
@@ -291,8 +303,8 @@ namespace Radon.Modules
             [Priority(-1)]
             public async Task GifAsync([Remainder] string query)
             {
-                var gif = await _giphy.GifSearch(new SearchParameter { Query = query });
-                var embed = new EmbedBuilder();
+                GiphyDotNet.Model.Results.GiphySearchResult gif = await _giphy.GifSearch(new SearchParameter { Query = query });
+                EmbedBuilder embed = new EmbedBuilder();
                 if (!gif.Data.Any())
                     embed.WithTitle("No gif found")
                         .WithDescription($"Couldn't find any gif for {query.InlineCode()}");

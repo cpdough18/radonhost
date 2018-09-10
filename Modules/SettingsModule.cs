@@ -88,7 +88,7 @@ namespace Radon.Modules
             [Command("add")]
             [Alias("a")]
             [Summary("Adds a channel to the blacklist")]
-            [CheckPermission(GuildPermission.ManageChannels)]
+            [RequireUserPermission(GuildPermission.ManageChannels)]
             public async Task AddBlacklistAsync(params ITextChannel[] channels)
             {
                 var channelCount = channels.Sum(channel => (!Server.Blacklist.Add(channel.Id) ? 0 : 1));
@@ -100,7 +100,7 @@ namespace Radon.Modules
             [Command("remove")]
             [Alias("r")]
             [Summary("Removes a channel from the blacklist")]
-            [CheckPermission(GuildPermission.ManageChannels)]
+            [RequireUserPermission(GuildPermission.ManageChannels)]
             public async Task RemoveBlacklistAsync(params ITextChannel[] channels)
             {
                 var channelIds = channels.Select(x => x.Id);
@@ -130,7 +130,7 @@ namespace Radon.Modules
 
             [Command("add")]
             [Alias("a")]
-            [CheckPermission(GuildPermission.ManageChannels)]
+            [RequireUserPermission(GuildPermission.ManageChannels)]
             [Summary("Adds a channel from the whitelist")]
             public async Task AddWhitelistAsync(params ITextChannel[] channels)
             {
@@ -142,7 +142,7 @@ namespace Radon.Modules
 
             [Command("remove")]
             [Alias("r")]
-            [CheckPermission(GuildPermission.ManageChannels)]
+            [RequireUserPermission(GuildPermission.ManageChannels)]
             [Summary("Removes a channel from the whitelist")]
             public async Task RemoveWhitelistAsync(params ITextChannel[] channels)
             {
@@ -155,24 +155,24 @@ namespace Radon.Modules
         }
 
         [Group("category")]
-        [Alias("categorys")]
+        [Alias("categories")]
         [CommandCategory(CommandCategory.Settings)]
         [CheckServer]
-        [Summary("Lets you disable or enable categorys")]
+        [Summary("Lets you disable or enable categories")]
         public class CategoryModule : CommandBase
         {
             [Command("")]
             [Priority(-1)]
-            [Summary("Shows all enabled/disabled categorys")]
-            public async Task Categorys()
+            [Summary("Shows all enabled/disabled categories")]
+            public async Task Categories()
             {
-                var categorys = Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>();
-                await ReplyEmbedAsync("Categorys",
-                    $"Enabled: {string.Join(", ", categorys.Except(Server.DisabledCategories).Select(x => $"{x}".InlineCode()))}" +
+                var categories = Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>();
+                await ReplyEmbedAsync("Categories",
+                    $"Enabled: {string.Join(", ", categories.Except(Server.DisabledCategories).Select(x => $"{x}".InlineCode()))}" +
                     $"\nDisabled: {string.Join(", ", Server.DisabledCategories.Select(x => $"{x}".InlineCode()))}");
             }
 
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             [Command("enable")]
             [Summary("Enables a category")]
             public async Task EnableAsync([Remainder] string category)
@@ -195,11 +195,11 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Unknown Category",
-                        $"Aviable categorys: {string.Join(", ", Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available categories: {string.Join(", ", Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
 
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             [Command("disable")]
             [Summary("Disables a category")]
             public async Task DisableAsync([Remainder] string category)
@@ -230,7 +230,7 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Unknown Category",
-                        $"Aviable categorys: {string.Join(", ", Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available categories: {string.Join(", ", Enum.GetValues(typeof(CommandCategory)).Cast<CommandCategory>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
         }
@@ -253,7 +253,7 @@ namespace Radon.Modules
 
             [Command("add")]
             [Alias("a")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             [Summary("Adds a prefix")]
             public async Task AddPrefixAsync([Remainder] string prefix)
             {
@@ -265,7 +265,7 @@ namespace Radon.Modules
 
             [Command("remove")]
             [Alias("r")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             [Summary("Removes a prefix")]
             public async Task RemovePrefixAsync([Remainder] string prefix)
             {
@@ -277,7 +277,7 @@ namespace Radon.Modules
 
             [Command("clear")]
             [Alias("c")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             [Summary("Removes all prefixes")]
             public async Task ClearPrefixesAsync()
             {
@@ -312,7 +312,7 @@ namespace Radon.Modules
             [Command("add")]
             [Alias("a")]
             [Summary("Adds a joinmessage")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task AddJoinMessageAsync([Remainder] string message)
             {
                 if (Server.JoinMessages.Add(message))
@@ -324,7 +324,7 @@ namespace Radon.Modules
             [Command("remove")]
             [Alias("r")]
             [Summary("Removes a joinmessage")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task AddJoinMessageAsync(int id)
             {
                 if (!Server.JoinMessages.Any())
@@ -353,7 +353,7 @@ namespace Radon.Modules
             [Command("clear")]
             [Alias("c")]
             [Summary("Removes all joinmessages")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task ClearJoinMessageAsync()
             {
                 Server.JoinMessages.Clear();
@@ -387,7 +387,7 @@ namespace Radon.Modules
             [Command("add")]
             [Alias("a")]
             [Summary("Adds a leavemessage")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task AddLeaveMessageAsync([Remainder] string message)
             {
                 if (Server.LeaveMessages.Add(message))
@@ -399,7 +399,7 @@ namespace Radon.Modules
             [Command("remove")]
             [Alias("r")]
             [Summary("Removes a leavemessage")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task AddLeaveMessageAsync(int id)
             {
                 if (!Server.LeaveMessages.Any())
@@ -428,7 +428,7 @@ namespace Radon.Modules
             [Command("clear")]
             [Alias("c")]
             [Summary("Removes all leavemessages")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task ClearLeaveMessageAsync()
             {
                 Server.LeaveMessages.Clear();
@@ -453,7 +453,7 @@ namespace Radon.Modules
 
             [Command("")]
             [Summary("Lets you set a custom color")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task SetColorAsync([Remainder] string color)
             {
                 if (PublicVariables.Colors.TryGetValue(color, out var hex))
@@ -465,13 +465,13 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Color Not Found",
-                        $"Aviable colors: {string.Join(", ", PublicVariables.Colors.Select(x => $"{x.Key}".InlineCode()))}");
+                        $"Available colors: {string.Join(", ", PublicVariables.Colors.Select(x => $"{x.Key}".InlineCode()))}");
                 }
             }
 
             [Command("")]
             [Summary("Lets you set a custom color")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task SetColorAsync(int r, int g, int b)
             {
                 if (new[] { r, g, b }.Any(x => x > 255 || x < 0))
@@ -505,7 +505,7 @@ namespace Radon.Modules
             }
 
             [Command("")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task SetLogChannelAsync(ITextChannel channel)
             {
                 Server.LogChannelId = channel.Id;
@@ -514,7 +514,7 @@ namespace Radon.Modules
 
             [Command("remove")]
             [Alias("r", "delete", "d")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task RemoveLogChannelAsync()
             {
                 Server.LogChannelId = null;
@@ -539,7 +539,7 @@ namespace Radon.Modules
             }
 
             [Command("")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task SetAnnounceChannelAsync(ITextChannel channel)
             {
                 Server.AnnounceChannelId = channel.Id;
@@ -548,7 +548,7 @@ namespace Radon.Modules
 
             [Command("remove")]
             [Alias("r", "delete", "d")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task RemoveAnnounceChannelAsync()
             {
                 Server.AnnounceChannelId = null;
@@ -572,7 +572,7 @@ namespace Radon.Modules
             }
 
             [Command("")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task AutoRoleAsync(string role)
             {
                 var specificRole = Context.Guild.Roles.FirstOrDefault(x =>
@@ -603,7 +603,7 @@ namespace Radon.Modules
 
             [Command("remove")]
             [Alias("r", "delete", "d")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task RemoveAutoRoleAsync()
             {
                 Server.AutoroleId = null;
@@ -629,7 +629,7 @@ namespace Radon.Modules
 
             [Command("enable")]
             [Alias("e")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task EnableSettingAsync([Remainder] string setting)
             {
                 if (Enum.TryParse(typeof(Setting), setting, true, out var specificObject))
@@ -645,13 +645,13 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Setting Not Found",
-                        $"Aviable settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
 
             [Command("disable")]
             [Alias("d")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task DisableSettingAsync([Remainder] string setting)
             {
                 if (Enum.TryParse(typeof(Setting), setting, true, out var specificObject))
@@ -667,7 +667,7 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Setting Not Found",
-                        $"Aviable settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
         }
@@ -693,7 +693,7 @@ namespace Radon.Modules
 
             [Command("enable")]
             [Alias("e")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task EnableSettingAsync([Remainder] string setting)
             {
                 if (Enum.TryParse(typeof(Setting), setting, true, out var specificObject))
@@ -716,13 +716,13 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Setting Not Found",
-                        $"Aviable settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
 
             [Command("disable")]
             [Alias("d")]
-            [CheckPermission(GuildPermission.ManageGuild)]
+            [RequireUserPermission(GuildPermission.ManageGuild)]
             public async Task DisableSettingAsync([Remainder] string setting)
             {
                 if (Enum.TryParse(typeof(Setting), setting, true, out var specificObject))
@@ -745,7 +745,7 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Setting Not Found",
-                        $"Aviable settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available settings: {string.Join(", ", Enum.GetValues(typeof(Setting)).Cast<Setting>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
         }

@@ -55,7 +55,7 @@ namespace Discord.Addons.Interactive
         public Task<SocketMessage> NextMessageAsync(SocketCommandContext context, bool fromSourceUser = true,
             bool inSourceChannel = true, TimeSpan? timeout = null)
         {
-            var criterion = new Criteria<SocketMessage>();
+            Criteria<SocketMessage> criterion = new Criteria<SocketMessage>();
             if (fromSourceUser)
                 criterion.AddCriterion(new EnsureSourceUserCriterion());
             if (inSourceChannel)
@@ -115,7 +115,7 @@ namespace Discord.Addons.Interactive
         public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager,
             ICriterion<SocketReaction> criterion = null)
         {
-            var callback = new PaginatedMessageCallback(this, context, pager, criterion);
+            PaginatedMessageCallback callback = new PaginatedMessageCallback(this, context, pager, criterion);
             await callback.DisplayAsync().ConfigureAwait(false);
             return callback.Message;
         }

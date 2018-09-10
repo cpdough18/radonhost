@@ -44,47 +44,53 @@ namespace Radon.Services.Nsfw
             try
             {
                 tags = tags.Replace(" ", "+");
-                _httpClient.DefaultRequestHeaders.UserAgent. =
-                    new AuthenticationHeaderValue("User-Agent", $"{_configuration.E621UserAgent}");
-                JObject data;
-                //&page={_random.Next(1, 100)}
-                data = JObject.Parse(await _httpClient.GetStringAsync($"https://e621.net/post/index.json?tags={tags}&limit={count}"));
-                string rating = data["rating"].ToString();
-                string emote = ":question:";
-                switch (rating)
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", _configuration.E621UserAgent);
+
+                JArray data = JArray.Parse(await _httpClient.GetStringAsync($"https://e621.net/post/index.json?tags={tags}&limit={count}&page={_random.Next(1, 100)}"));
+                int stuff = data.Count - 1;
+                foreach (var item in data.Children())
                 {
-                    case "s":
-                        emote = ":green_heart:";
-                        break;
-                    case "q":
-                        emote = ":yellow_heart:";
-                        break;
-                    case "e":
-                        emote = ":purple_heart:";
-                        break;
-                    default:
-                        break;
+                    string rating = data[stuff]["rating"].ToString();
+                    string emote = ":question:";
+                    switch (rating)
+                    {
+                        case "s":
+                            emote = ":green_heart:";
+                            break;
+                        case "q":
+                            emote = ":yellow_heart:";
+                            break;
+                        case "e":
+                            emote = ":purple_heart:";
+                            break;
+                        default:
+                            break;
+                    }
+                    if (data[stuff]["tags"].ToString().ToLower().Contains("animated") || data[stuff]["tags"].ToString().ToLower().Contains("animation") && data[stuff]["file_ext"].ToString() != "gif")
+                    {
+
+                        await context.Channel.SendMessageAsync(
+                            $"{data[stuff]["author"]}" +
+                            $" | {data[stuff]["tags"].ToString().WithMaxLength(30)} | {data[stuff]["source"]}" +
+                            $" | {data[stuff]["file_url"]}" +
+                            $" | <:upvote:486361126658113536> {data[stuff]["score"]}" +
+                            $" | :heart: {data[stuff]["fav_count"]}" +
+                            $" | {emote}");
+
+                    }
+                    else
+                    {
+
+                        var embed = new EmbedBuilder()
+                        .WithTitle($"{data[stuff]["author"]} | {data[stuff]["tags"].ToString().WithMaxLength(30)}")
+                        .WithUrl($"{data[stuff]["source"]}")
+                        .WithImageUrl($"{data[stuff]["file_url"]}")
+                        .AddField("Statistics",$"<:upvote:486361126658113536> {data[stuff]["score"]} | :heart: {data[stuff]["fav_count"]} | {emote}");
+                        await context.Channel.SendMessageAsync(embed: embed.Build());
+                    }
+                    _httpClient.DefaultRequestHeaders.Authorization = null;
+                    stuff--;
                 }
-                if (data["tags"].ToString().Contains("Animated") && data["file_ext"].ToString() != "gif")
-                {
-                    await context.Channel.SendMessageAsync(
-                        $"{data["author"]}" +
-                        $" | {data[tags].ToString().WithMaxLength(30)} | {data["source"]}" +
-                        $" | {data["file_url"]}" +
-                        $" | <:upvote:486361126658113536> {data["score"]}" +
-                        $" | :heart: {data["fav_count"]}" +
-                        $" | {emote}");
-                }
-                else
-                {
-                    var embed = new EmbedBuilder()
-                    .WithTitle($"{data["author"]} | {data[tags].ToString().WithMaxLength(30)}")
-                    .WithUrl($"{data["source"]}")
-                    .WithImageUrl($"{data["file_url"]}")
-                    .WithFooter($"<:upvote:486361126658113536> {data["score"]} | :heart: {data["fav_count"]} | {emote}");
-                    await context.Channel.SendMessageAsync(embed: embed.Build());
-                }
-                _httpClient.DefaultRequestHeaders.Authorization = null;
             }
             catch (Exception e)
             {

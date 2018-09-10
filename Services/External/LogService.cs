@@ -1,13 +1,13 @@
 ﻿#region
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using Radon.Core;
 using Radon.Services.External;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -163,7 +163,9 @@ namespace Radon.Services
             if (!(arg is ITextChannel channel)) return;
             GetAuditLogEntry(channel.Guild, out var auditLog, Discord.ActionType.MessageDeleted);
             var message = await arg1.GetOrDownloadAsync();
-            var bulkDelete = false;
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+            var bulkDelete = false; // Says its never used but it is literally 5 lines below
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
 
             var description =
                 "Author ❯ {0}\nId ❯ {1}\nResponsible User ❯ {2}\nChannel ❯ {3}\nContent ❯ {4}\nReason ❯ {5}";

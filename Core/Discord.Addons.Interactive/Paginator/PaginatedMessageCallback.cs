@@ -32,39 +32,39 @@ namespace Discord.Addons.Interactive
         public InteractiveService Interactive { get; }
         public IUserMessage Message { get; private set; }
 
-        private PaginatedAppearanceOptions options => _pager.Options;
+        private PaginatedAppearanceOptions Options => _pager.Options;
         public SocketCommandContext Context { get; }
 
         public RunMode RunMode => RunMode.Sync;
         public ICriterion<SocketReaction> Criterion { get; }
 
-        public TimeSpan? Timeout => options.Timeout;
+        public TimeSpan? Timeout => Options.Timeout;
 
         public async Task<bool> HandleCallbackAsync(SocketReaction reaction)
         {
-            var emote = reaction.Emote;
+            IEmote emote = reaction.Emote;
 
-            if (emote.Equals(options.First))
+            if (emote.Equals(Options.First))
             {
                 page = 1;
             }
-            else if (emote.Equals(options.Next))
+            else if (emote.Equals(Options.Next))
             {
                 if (page >= pages)
                     return false;
                 ++page;
             }
-            else if (emote.Equals(options.Back))
+            else if (emote.Equals(Options.Back))
             {
                 if (page <= 1)
                     return false;
                 --page;
             }
-            else if (emote.Equals(options.Last))
+            else if (emote.Equals(Options.Last))
             {
                 page = pages;
             }
-            else if (emote.Equals(options.Stop))
+            else if (emote.Equals(Options.Stop))
             {
                 await Message.DeleteAsync().ConfigureAwait(false);
                 return true;
@@ -76,18 +76,18 @@ namespace Discord.Addons.Interactive
 
         public async Task DisplayAsync()
         {
-            var embed = BuildEmbed();
-            var message = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            Embed embed = BuildEmbed();
+            Rest.RestUserMessage message = await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
             Message = message;
             Interactive.AddReactionCallback(message, this);
             // Reactions take a while to add, don't wait for them
             _ = Task.Run(async () =>
             {
-                await message.AddReactionAsync(options.First);
-                await message.AddReactionAsync(options.Back);
-                await message.AddReactionAsync(options.Stop);
-                await message.AddReactionAsync(options.Next);
-                await message.AddReactionAsync(options.Last);
+                await message.AddReactionAsync(Options.First);
+                await message.AddReactionAsync(Options.Back);
+                await message.AddReactionAsync(Options.Stop);
+                await message.AddReactionAsync(Options.Next);
+                await message.AddReactionAsync(Options.Last);
             });
             if (Timeout != null)
                 _ = Task.Delay(Timeout.Value).ContinueWith(_ =>
@@ -100,13 +100,13 @@ namespace Discord.Addons.Interactive
         private Embed BuildEmbed()
         {
             return _pager.Pages.ToArray()[page - 1]
-                .WithFooter(string.Format(options.FooterFormat, page, pages))
+                .WithFooter(string.Format(Options.FooterFormat, page, pages))
                 .Build();
         }
 
         private async Task RenderAsync()
         {
-            var embed = BuildEmbed();
+            Embed embed = BuildEmbed();
             await Message.ModifyAsync(m => m.Embed = embed).ConfigureAwait(false);
         }
     }

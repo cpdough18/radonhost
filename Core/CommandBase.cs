@@ -21,22 +21,20 @@ namespace Radon.Core
         public Configuration Configuration { get; set; }
         public Random Random { get; set; }
         public HttpClient HttpClient { get; set; }
-
         public DatabaseService Database { get; set; }
 
         protected override void BeforeExecute(CommandInfo command)
         {
-            var executionObj = Caching.ExecutionObjects[Context.Message.Id];
+            ExecutionObject executionObj = Caching.ExecutionObjects[Context.Message.Id];
             Server = executionObj?.Server;
             _oldServer = Server;
             if (Server == null || Context.Guild == null) return;
             Server.ServerId = Context.Guild.Id;
             Server.Name = Context.Guild.Name;
         }
-
         protected override void AfterExecute(CommandInfo command)
         {
-            var executionObj = Caching.ExecutionObjects[Context.Message.Id];
+            ExecutionObject executionObj = Caching.ExecutionObjects[Context.Message.Id];
             //if (executionObj.Server != Server)
             Database.Execute(x =>
             {

@@ -87,19 +87,32 @@ namespace Radon.Modules
         {
             await _nsfwService.SendImageFromCategory(Context, "pussy", Server);
         }
-        [Command("E621")]
-        [Alias("e6")]
-        public async Task E621Async(int count,[Remainder] string tags)
+        [Group("E621")]
+        [Summary("Gets an image from E621")]
+        public class E621 : CommandBase
         {
-            if (count < 10)
-                count = 10;
-            await _nsfwService.GetE621Async(Context, count, tags);
+            private readonly NSFWService _nsfwService;
+
+            public E621(NSFWService nsfwService)
+            {
+                _nsfwService = nsfwService;
+            }
+
+            [Command("E621")]
+            [Alias("e6")]
+            public async Task E621Async(int count, [Remainder] string tags)
+            {
+                if (count > 10)
+                    count = 10;
+                await _nsfwService.GetE621Async(Context, count, tags);
+            }
+            [Command("E621")]
+            [Alias("e6")]
+            public async Task E621Async([Remainder] string tags)
+            {
+                await _nsfwService.GetE621Async(Context, 1, tags);
+            }
         }
-        [Command("E621")]
-        [Alias("e6")]
-        public async Task E621Async([Remainder] string tags)
-        {
-            await _nsfwService.GetE621Async(Context, 1, tags);
-        }
+
     }
 }

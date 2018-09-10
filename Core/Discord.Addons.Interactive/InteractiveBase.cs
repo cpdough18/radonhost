@@ -34,7 +34,7 @@ namespace Discord.Addons.Interactive
 
         public Task<IUserMessage> PagedReplyAsync(IEnumerable<EmbedBuilder> pages, bool fromSourceUser = true)
         {
-            var pager = new PaginatedMessage
+            PaginatedMessage pager = new PaginatedMessage
             {
                 Pages = pages
             };
@@ -43,7 +43,7 @@ namespace Discord.Addons.Interactive
 
         public Task<IUserMessage> PagedReplyAsync(PaginatedMessage pager, bool fromSourceUser = true)
         {
-            var criterion = new Criteria<SocketReaction>();
+            Criteria<SocketReaction> criterion = new Criteria<SocketReaction>();
             if (fromSourceUser)
                 criterion.AddCriterion(new EnsureReactionFromSourceUserCriterion());
             return PagedReplyAsync(pager, criterion);

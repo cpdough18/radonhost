@@ -32,7 +32,6 @@ namespace Radon.Core
 
         public GuildPermission? GuildPermission { get; }
         public ChannelPermission? ChannelPermission { get; }
-
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context,
             CommandInfo command, IServiceProvider services)
         {
@@ -90,7 +89,7 @@ namespace Radon.Core
         {
             if (services.GetService<Configuration>().OwnerIds.Contains(context.User.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
-            var guildUser = context.User as IGuildUser;
+            IGuildUser guildUser = context.User as IGuildUser;
 
             if (GuildPermission.HasValue)
             {
@@ -141,7 +140,7 @@ namespace Radon.Core
             if (context.Channel is ITextChannel text && text.IsNsfw)
                 return Task.FromResult(PreconditionResult.FromSuccess());
             return Task.FromResult(
-                PreconditionResult.FromError($"This command is only aviable in {"nsfw".InlineCode()} channels"));
+                PreconditionResult.FromError($"This command is only available in {"nsfw".InlineCode()} channels"));
         }
     }
 
@@ -186,7 +185,7 @@ namespace Radon.Core
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter,
             object value, IServiceProvider services)
         {
-            var currentUser = (context as SocketCommandContext)?.Guild.CurrentUser;
+            SocketGuildUser currentUser = (context as SocketCommandContext)?.Guild.CurrentUser;
             switch (value)
             {
                 case SocketGuildUser user when currentUser != null:
@@ -211,7 +210,7 @@ namespace Radon.Core
         {
             if (services.GetService<Configuration>().OwnerIds.Contains(context.User.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
-            var user = (context as SocketCommandContext)?.Guild.CurrentUser;
+            SocketGuildUser user = (context as SocketCommandContext)?.Guild.CurrentUser;
             switch (value)
             {
                 case SocketGuildUser target when user != null:
@@ -236,10 +235,10 @@ namespace Radon.Core
         {
             if (services.GetService<Configuration>().OwnerIds.Contains(context.User.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
-            var caching = services.GetService<CachingService>();
-            if (caching.ExecutionObjects.TryGetValue(context.Message.Id, out var executionObj))
+            CachingService caching = services.GetService<CachingService>();
+            if (caching.ExecutionObjects.TryGetValue(key: context.Message.Id, value: out ExecutionObject executionObj))
             {
-                var category = command.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category ??
+                CommandCategory? category = command.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category ??
                                command.Module.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category;
                 if (category.HasValue && executionObj.Server.DisabledCategories.Contains(category.Value))
                     return Task.FromResult(PreconditionResult.FromError("This command category is disabled"));

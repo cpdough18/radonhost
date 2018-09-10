@@ -31,18 +31,22 @@ namespace Radon.Modules
 
         [Command("ban")]
         [Description("Bans a user")]
-        [CheckPermission(GuildPermission.BanMembers)]
-        [CheckBotPermission(GuildPermission.BanMembers)]
+        [RequireUserPermission(GuildPermission.BanMembers)]
+        [RequireBotPermission(GuildPermission.BanMembers)]
         [Summary("Bans a user for a given reason")]
         public async Task BanAsync([CheckBotHierarchy] [CheckUserHierarchy]
             IGuildUser user, [Remainder] string reason = null)
         {
-            await user.SendMessageAsync(embed: NormalizeEmbed("You got banned",
-                    $"Server ❯ {Context.Guild.Name}\nResponsible User ❯ {Context.User.Mention}\nReason ❯ {reason ?? "none"}")
-                .Build());
-
+            try
+            {
+                await user.SendMessageAsync(embed: NormalizeEmbed("You got banned",
+                        $"Server ❯ {Context.Guild.Name}\nResponsible User ❯ {Context.User.Mention}\nReason ❯ {reason ?? "none"}")
+                    .Build());
+            } catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
             await user.BanAsync(reason: reason);
-
             var logItem = _serverService.AddLogItem(Server, ActionType.Ban, reason, Context.User.Id, user.Id);
 
             await ReplyEmbedAsync("Member Banned",
@@ -55,8 +59,8 @@ namespace Radon.Modules
 
         [Command("kick")]
         [Description("Kicks a user")]
-        [CheckPermission(GuildPermission.KickMembers)]
-        [CheckPermission(GuildPermission.KickMembers)]
+        [RequireUserPermission(GuildPermission.KickMembers)]
+        [RequireUserPermission(GuildPermission.KickMembers)]
         [Summary("Kicks a user for a given reason")]
         public async Task KickAsync([CheckBotHierarchy] [CheckUserHierarchy]
             IGuildUser user, [Remainder] string reason = null)
@@ -78,8 +82,8 @@ namespace Radon.Modules
         }
 
         [Command("clear")]
-        [CheckPermission(GuildPermission.ManageMessages)]
-        [CheckPermission(ChannelPermission.ManageMessages)]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        [RequireUserPermission(ChannelPermission.ManageMessages)]
         [Summary("Clears some messages from the current chat")]
         public async Task ClearAsync(int count, [Remainder] string reason = null)
         {
@@ -95,8 +99,8 @@ namespace Radon.Modules
 
         [Command("mute")]
         [Alias("m")]
-        [CheckPermission(ChannelPermission.MuteMembers)]
-        [CheckBotPermission(GuildPermission.ManageRoles)]
+        [RequireUserPermission(GuildPermission.MuteMembers)]
+        [RequireBotPermission(GuildPermission.ManageRoles)]
         [Summary("Mutes a user for a given reason")]
         public async Task MuteAsync([CheckUserHierarchy] [CheckBotHierarchy]
             SocketGuildUser user, [Remainder] string reason = null)
@@ -145,8 +149,8 @@ namespace Radon.Modules
 
         [Command("unmute")]
         [Alias("um")]
-        [CheckPermission(ChannelPermission.MuteMembers)]
-        [CheckBotPermission(GuildPermission.ManageRoles)]
+        [RequireUserPermission(GuildPermission.MuteMembers)]
+        [RequireBotPermission(GuildPermission.ManageRoles)]
         [Summary("Unmutes a user for a given reason")]
         public async Task UnMuteAsync([CheckUserHierarchy] [CheckBotHierarchy]
             SocketGuildUser user, [Remainder] string reason = null)
@@ -195,8 +199,8 @@ namespace Radon.Modules
         }
 
         [Command("bulk")]
-        [CheckPermission(ChannelPermission.ManageChannels)]
-        [CheckBotPermission(ChannelPermission.ManageChannels)]
+        [RequireUserPermission(ChannelPermission.ManageChannels)]
+        [RequireBotPermission(ChannelPermission.ManageChannels)]
         [Summary("Deletes all messages from this channel")]
         public async Task BulkAsync(string reason = null)
         {
@@ -324,7 +328,7 @@ namespace Radon.Modules
                 else
                 {
                     await ReplyEmbedAsync("Category Not Found",
-                        $"Aviable categorys: {string.Join(", ", Enum.GetValues(typeof(ActionType)).Cast<ActionType>().Select(x => $"{x}".ToLower().InlineCode()))}");
+                        $"Available categories: {string.Join(", ", Enum.GetValues(typeof(ActionType)).Cast<ActionType>().Select(x => $"{x}".ToLower().InlineCode()))}");
                 }
             }
 

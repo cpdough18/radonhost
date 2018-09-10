@@ -26,15 +26,16 @@ namespace Radon.Modules
         private readonly IEnumerable<string> _dependencies = new[]
         {
             "Discord", "Discord.Net", "Discord.Commands", "Discord.WebSocket", "System", "System.Linq",
-            "System.Collections.Generic", "System.Text", "System.Threading.Tasks"
+            "System.Collections.Generic", "System.Text", "System.Threading.Tasks", "Newtonsoft.Json.Linq",
+            "System.Net.Http", "System.Net.Http.Headers"
         };
 
         [Command("eval")]
         [Summary("Evaluates some code and returns the result")]
         public async Task EvaluateAsync([Remainder] string code)
         {
-            if (code.Contains("\\`")) 
-                code = code.Replace("\\","`");
+            if (code.Contains("\\`"))
+                code = code.Replace("\\", "`");
             if (Regex.IsMatch(code, PublicVariables.CodeBlockRegex, RegexOptions.Compiled | RegexOptions.Multiline))
                 code =
                     $"{Regex.Match(code, PublicVariables.CodeBlockRegex, RegexOptions.Compiled | RegexOptions.Multiline).Groups[2]}";

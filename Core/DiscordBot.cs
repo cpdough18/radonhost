@@ -17,6 +17,7 @@ using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Radon.Services;
 using Radon.Services.External;
+using SharpLink;
 using Radon.Services.Nsfw;
 
 #endregion
@@ -29,16 +30,17 @@ namespace Radon.Core
         private CommandService _commands;
         private Configuration _configuration;
         private DatabaseService _database;
-        private HttpClient _http;
+        private HttpClient _httpClient;
         private InteractiveService _interactive;
         private IServiceProvider _services;
+        private LavalinkManager _lavalinkManager;
 
         public async Task InitializeAsync()
         {
             _ = PublicVariables.Colors;
             _configuration = ConfigurationService.LoadNewConfig();
             _database = new DatabaseService(_configuration);
-            _http = new HttpClient();
+            _httpClient = new HttpClient();
             _client = new DiscordShardedClient(new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
@@ -53,6 +55,15 @@ namespace Radon.Core
                 LogLevel = LogSeverity.Info,
                 DefaultRunMode = RunMode.Sync
             });
+            _lavalinkManager = new LavalinkManager(_client, new LavalinkManagerConfig
+            {
+                RESTHost = _configuration.RESTHost,
+                RESTPort = _configuration.RESTPort,
+                WebSocketHost = _configuration.WebSocketHost,
+                WebSocketPort = _configuration.WebSocketPort,
+                Authorization = _configuration.Authorization,
+                TotalShards = _configuration.ShardCount,
+            });
             _interactive = new InteractiveService(_client);
             _services = new ServiceCollection()
                 .AddSingleton(_client)
@@ -60,17 +71,19 @@ namespace Radon.Core
                 .AddSingleton(_configuration)
                 .AddSingleton(_database)
                 .AddSingleton(_interactive)
-                .AddSingleton(_http)
+                .AddSingleton(_httpClient)
+                .AddSingleton(_lavalinkManager)
                 .AddSingleton(new Giphy(_configuration.GiphyApiKey))
-                //.AddSingleton<StatisticsService>()
+                .AddSingleton<StatisticsService>()
                 .AddSingleton<Random>()
                 .AddSingleton<LogService>()
                 .AddSingleton<CachingService>()
                 .AddSingleton<ServerService>()
                 .AddSingleton<NSFWService>()
+                .AddSingleton<SharplinkService>()
                 .BuildServiceProvider();
             _services.GetService<LogService>();
-            //_services.GetService<StatisticsService>();
+            _services.GetService<StatisticsService>();
             _client.MessageReceived += MessageReceived;
             _client.ReactionAdded += ReactionAdded;
             _client.Log += Log;
@@ -88,7 +101,9 @@ namespace Radon.Core
 
         private async Task Ready(DiscordSocketClient client)
         {
-            _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(_client.CurrentUser.Username));
+            try { await _lavalinkManager.StartAsync(); }
+            catch (Exception e) { Console.WriteLine(e.ToString()); }
+            _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(_client.CurrentUser.Username));
             PublicVariables.Application = await _client.GetApplicationInfoAsync();
         }
 
@@ -109,9 +124,9 @@ namespace Radon.Core
             {
                 if (msg.Author.IsBot || !(msg is SocketUserMessage message)) return;
 
-                var argPos = 0;
+                int argPos = 0;
 
-                var prefixes = new List<string>(_configuration.BotPrefixes);
+                List<string> prefixes = new List<string>(_configuration.BotPrefixes);
 
                 Server server = null;
 
@@ -119,7 +134,7 @@ namespace Radon.Core
 
                 if (message.Channel is ITextChannel channel)
                 {
-                    var guild = channel.Guild;
+                    IGuild guild = channel.Guild;
                     _database.Execute(x => { server = x.Load<Server>($"{guild.Id}") ?? new Server(); });
 
                     switch (server.BlockingType)
@@ -143,11 +158,14 @@ namespace Radon.Core
                 if (message.HasMentionPrefix(_client.CurrentUser, ref argPos) || prefixes.Any(x =>
                         message.HasStringPrefix(x, ref argPos, StringComparison.OrdinalIgnoreCase)))
                 {
-                    var context = new ShardedCommandContext(_client, message);
-                    var parameters = message.Content.Substring(argPos).TrimStart('\n', ' ');
+                    ShardedCommandContext context = new ShardedCommandContext(_client, message);
+                    string parameters = message.Content.Substring(argPos).TrimStart('\n', ' ');
                     _services.GetService<CachingService>().ExecutionObjects[message.Id] = executionObj;
-                    var result = await _commands.ExecuteAsync(context, parameters, _services, MultiMatchHandling.Best);
-                    if (!result.IsSuccess) await HandleErrorAsync(result, context, parameters, server);
+                    IResult result = await _commands.ExecuteAsync(context, parameters, _services, MultiMatchHandling.Best);
+                    if (!result.IsSuccess)
+                    {
+                        await HandleErrorAsync(result, context, parameters, server);
+                    }
                 }
             }
             catch (Exception e)
@@ -160,7 +178,7 @@ namespace Radon.Core
         public async Task HandleErrorAsync(IResult result, ShardedCommandContext context, string parameters,
             Server server)
         {
-            var embed = new EmbedBuilder().NormalizeEmbed(ColorType.Normal, _services.GetService<Random>(), server);
+            EmbedBuilder embed = new EmbedBuilder().NormalizeEmbed(ColorType.Normal, _services.GetService<Random>(), server);
             switch (result.Error)
             {
                 case CommandError.UnknownCommand:
@@ -168,11 +186,11 @@ namespace Radon.Core
                 case CommandError.BadArgCount:
                 case CommandError.ParseFailed:
                 case CommandError.ObjectNotFound:
-                    var searchResult = _commands.Search(context, parameters);
+                    SearchResult searchResult = _commands.Search(context, parameters);
                     if (result.Error == CommandError.BadArgCount)
                     {
-                        var command = searchResult.Commands.First();
-                        var preconditionResult = await command.CheckPreconditionsAsync(context, _services);
+                        CommandMatch command = searchResult.Commands.First();
+                        PreconditionResult preconditionResult = await command.CheckPreconditionsAsync(context, _services);
                         if (!preconditionResult.IsSuccess && preconditionResult.Error != CommandError.BadArgCount)
                         {
                             embed.WithTitle("Missing Permissions")
@@ -200,8 +218,10 @@ namespace Radon.Core
                 case CommandError.Exception:
                 case null:
                     embed.WithTitle("Internal Error")
-                        .WithDescription("I just occured an internal error! :(");
+                        .WithDescription("Error: null");
                     await context.Channel.SendMessageAsync(embed: embed.Build());
+                    break;
+                default:
                     break;
             }
         }
@@ -209,18 +229,32 @@ namespace Radon.Core
         private async Task ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2,
             SocketReaction reaction)
         {
-            if (!(arg2 is ITextChannel channel)) return;
+            if (!(arg2 is ITextChannel channel))
+            {
+                return;
+            }
+
             Server server = null;
             if (Equals(reaction.Emote.Name, "#⃣"))
             {
                 _database.Execute(x => server = x.Load<Server>($"{channel.Guild.Id}"));
-                if (!server.GetSetting(Setting.Hastebin)) return;
-                var message = await arg1.GetOrDownloadAsync();
-                if (message.Author.IsBot) return;
+                if (!server.GetSetting(Setting.Hastebin))
+                {
+                    return;
+                }
+
+                IUserMessage message = await arg1.GetOrDownloadAsync();
+                if (message.Author.IsBot)
+                {
+                    return;
+                }
+
                 if (Regex.IsMatch(message.Content, PublicVariables.CodeBlockRegex,
                     RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                {
                     await message.Channel.SendMessageAsync(
-                        $"{message.Author.Mention} ❯ {message.Content.ToHastebin(_http)}");
+                        $"{message.Author.Mention} ❯ {message.Content.ToHastebin(_httpClient)}");
+                }
             }
         }
     }

@@ -14,14 +14,13 @@ namespace Radon.Core
     public enum CommandCategory
     {
         Moderation,
-        /*[CannotDisable]*/ General,
+        [CannotDisable] General,
         Nsfw,
-        /*[CannotDisable]*/ Settings,
+        [CannotDisable] Settings,
         Fun,
-        /*[CannotDisable]*/ BotOwner,
+        [CannotDisable] BotOwner,
         Tools
     }
-
     public class CommandCategoryAttribute : Attribute
     {
         public CommandCategoryAttribute(CommandCategory category)

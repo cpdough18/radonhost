@@ -24,25 +24,24 @@ namespace Radon.Modules
     public class GeneralModule : CommandBase
     {
         private readonly CommandService _commands;
-
-        public GeneralModule(CommandService commands)
+        private readonly Configuration _configuration;
+        public GeneralModule(CommandService commands, Configuration configuration)
         {
             _commands = commands;
+            _configuration = configuration;
         }
-
         [Command("ping")]
         [Summary("Displays the bot's latency")]
         public async Task PingAsync()
         {
-            var watch = new Stopwatch();
+            Stopwatch watch = new Stopwatch();
             watch.Start();
-            var embed = NormalizeEmbed("Ping", $"Gateway Latency ❯ {Context.Client.Latency}ms");
-            var message = await ReplyAsync(embed: embed.Build());
+            EmbedBuilder embed = NormalizeEmbed(":ping_pong: Pong", $"Gateway Latency ❯ {Context.Client.Latency}ms");
+            IUserMessage message = await ReplyAsync(embed: embed.Build());
             watch.Stop();
             embed.Description += $"\nMessage Latency ❯ {watch.Elapsed.TotalMilliseconds}ms";
             await message.ModifyAsync(x => x.Embed = embed.Build());
         }
-
         [Command("info")]
         [Alias("i")]
         [Summary("Shows some basic informations about the bot")]
@@ -52,56 +51,53 @@ namespace Radon.Modules
                 $"{Context.Guild.CurrentUser.Nickname ?? Context.Guild.CurrentUser.Username} Information",
                 $"[Official Server]({Configuration.BotDiscordInviteLink})" +
                 $"\n[Invite](https://discordapp.com/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&scope=bot&permissions=2146958591)" +
-                $"\n[Listcord](https://listcord.com/bot/{Context.Client.CurrentUser.Id})" +
+                //$"\n[Listcord](https://listcord.com/bot/{Context.Client.CurrentUser.Id})" +
                 $"\nShards ❯ {Context.Client.Shards.Count}" +
                 $"\nLast Restart ❯ {Process.GetCurrentProcess().StartTime.Humanize()}" +
                 $"\nGuilds ❯ {Context.Client.Guilds.Count}" +
                 $"\nUsers ❯ {Context.Client.Guilds.Sum(x => x.MemberCount)}" +
                 $"\nLatency ❯ {Context.Client.Latency}ms");
         }
-
         [Command("serverinfo")]
         [Alias("server")]
         [Summary("Shows information about this server")]
         public async Task ServerInfoAsync()
         {
-            var emojis = string.Join(" ", Context.Guild.Emotes.Select(x => x.ToString()));
+            string emojis = string.Join(" ", Context.Guild.Emotes.Select(x => x.ToString()));
             if (emojis.Length > 1024)
             {
                 emojis = emojis.Substring(0, Math.Min(1024, emojis.Length));
                 emojis = emojis.Substring(0, emojis.LastIndexOf(' '));
             }
-
-            var roles = string.Join(", ", Context.Guild.Roles.Select(x => x.Mention));
+            string roles = string.Join(", ", Context.Guild.Roles.Select(x => x.Mention));
             if (roles.Length > 512)
             {
                 roles = roles.Substring(0, Math.Min(512, roles.Length));
                 roles = roles.Substring(0, roles.LastIndexOf(','));
             }
-
-            var embed = new EmbedBuilder()
+            EmbedBuilder embed = new EmbedBuilder()
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
                 .AddField("General Information",
-                    $"Name         ❯ {Context.Guild.Name}" +
-                    $"\nId           ❯ {Context.Guild.Id}" +
-                    $"\nOwner        ❯ {Context.Guild.Owner.Mention}" +
+                    $"Name ❯ {Context.Guild.Name}" +
+                    $"\nId ❯ {Context.Guild.Id}" +
+                    $"\nOwner ❯ {Context.Guild.Owner.Mention}" +
                     $"\nVerification ❯ {Context.Guild.VerificationLevel}" +
-                    $"\nAfk Channel  ❯ {(Context.Guild.AFKChannel == null ? "None" : Context.Guild.AFKChannel.Name)}" +
-                    $"\nAfk Timeout  ❯ {Context.Guild.AFKTimeout.Minutes().TotalMinutes} minutes" +
+                    $"\nAfk Channel ❯ {(Context.Guild.AFKChannel == null ? "None" : Context.Guild.AFKChannel.Name)}" +
+                    $"\nAfk Timeout ❯ {Context.Guild.AFKTimeout.Minutes().TotalMinutes} minutes" +
                     $"\nHighest Role ❯ {Context.Guild.Roles.OrderByDescending(x => x.Position).First().Mention}" +
-                    $"\nCreated On   ❯ {Context.Guild.CreatedAt:G}",
+                    $"\nCreated On ❯ {Context.Guild.CreatedAt:G}",
                     true)
                 .AddField($"Members - {Context.Guild.MemberCount}",
-                    $"<:online:486264689546887169> Online       ❯ {Context.Guild.Users.Count(x => x.Status == UserStatus.Online && !x.IsBot)}" +
-                    $"\n<:idle:486264689408344074> Idle         ❯ {Context.Guild.Users.Count(x => x.Status == UserStatus.Idle && !x.IsBot)}" +
+                    $"<:online:486264689546887169> Online ❯ {Context.Guild.Users.Count(x => x.Status == UserStatus.Online && !x.IsBot)}" +
+                    $"\n<:idle:486264689408344074> Idle ❯ {Context.Guild.Users.Count(x => x.Status == UserStatus.Idle && !x.IsBot)}" +
                     $"\n<:donotdisturb:486264689953603584> DoNotDisturb ❯ {Context.Guild.Users.Count(x => x.Status == UserStatus.DoNotDisturb && !x.IsBot)}" +
-                    $"\n<:streaming:486264689509269504> Streaming    ❯ {Context.Guild.Users.Count(x => x.Activity?.Type == ActivityType.Streaming && !x.IsBot)}" +
-                    $"\n<:offline:486264689244897311> Offline      ❯ {Context.Guild.MemberCount - Context.Guild.Users.Count(x => x.Status == UserStatus.Offline)}" +
-                    $"\n<:bot:486264689089708033> Bots         ❯ {Context.Guild.Users.Count(x => x.IsBot)}",
+                    $"\n<:streaming:486264689509269504> Streaming ❯ {Context.Guild.Users.Count(x => x.Activity?.Type == ActivityType.Streaming && !x.IsBot)}" +
+                    $"\n<:offline:486264689244897311> Offline ❯ {Context.Guild.MemberCount - Context.Guild.Users.Count(x => x.Status == UserStatus.Offline)}" +
+                    $"\n<:bot:486264689089708033> Bots ❯ {Context.Guild.Users.Count(x => x.IsBot)}",
                     true)
-                .AddField($"Channels       ❯ {Context.Guild.Channels.Count}",
-                    $"Categories     ❯ {Context.Guild.CategoryChannels.Count}" +
-                    $"\nText Channels  ❯ {Context.Guild.TextChannels.Count}" +
+                .AddField($"Channels ❯ {Context.Guild.Channels.Count}",
+                    $"Categories ❯ {Context.Guild.CategoryChannels.Count}" +
+                    $"\nText Channels ❯ {Context.Guild.TextChannels.Count}" +
                     $"\nVoice Channels ❯ {Context.Guild.VoiceChannels.Count}",
                     true);
 
@@ -115,87 +111,107 @@ namespace Radon.Modules
 
             await ReplyEmbedAsync(embed);
         }
+        [Command("Feedback")]
+        [Alias("fb")]
+        [Summary("Sends a message to the owner of the bot with your feedback")]
+        public async Task FeedbackAsync([Remainder]string message)
+        {
+            foreach (ulong item in _configuration.OwnerIds)
+            {
 
+            }
+            EmbedBuilder embed = new EmbedBuilder().WithTitle("Thanks for your feedback");
+            await ReplyEmbedAsync(embed: embed);
+        }
         [CommandCategory(CommandCategory.General)]
         [Group("help")]
         [Summary("Gives you help with a command or category")]
         public class HelpModule : CommandBase
         {
             private readonly CommandService _commands;
-
             public HelpModule(CommandService commands)
             {
                 _commands = commands;
             }
-
             [Command("")]
             [Summary("Displays information about a specific command or all commands with a specific category")]
             [Priority(-1)]
             public async Task HelpAsync(string command)
             {
-                var result = _commands.Search(command);
-                var embed = new EmbedBuilder();
+                SearchResult result = _commands.Search(command);
+                EmbedBuilder embed = new EmbedBuilder();
                 if (!result.IsSuccess)
                 {
-                    if (Enum.TryParse(typeof(CommandCategory), command, true, out var categoryObj))
+                    if (Enum.TryParse(enumType: typeof(CommandCategory), value: command, ignoreCase: true, result: out object categoryObj))
                     {
-                        var category = (CommandCategory)categoryObj;
+                        CommandCategory category = (CommandCategory)categoryObj;
                         if (Server != null && Server.DisabledCategories.Contains(category))
                         {
                             await ReplyEmbedAsync("Unknown command",
                                 $"Couldn't find a command or category for {command}");
                             return;
                         }
-
-                        var modules = _commands.Modules.Where(x =>
+                        IEnumerable<ModuleInfo> modules = _commands.Modules.Where(x =>
                             x.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category == category);
-                        var embeds = new List<EmbedBuilder>();
                         if (modules.Count() <= 8)
                         {
                             embed.WithTitle($"{category.Humanize(LetterCasing.Title)} Commands")
                                 .WithColor(Color.Purple);
-                            foreach (var module in modules)
+                            foreach (ModuleInfo module in modules)
+                            {
                                 if (string.IsNullOrWhiteSpace(module.Group))
-                                    foreach (var commandInfo in module.Commands)
+                                {
+                                    foreach (CommandInfo commandInfo in module.Commands)
+                                    {
                                         embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
                                             $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
+                                    }
+                                }
                                 else
+                                {
                                     embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
                                         $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
+                                }
+                            }
 
                             await ReplyEmbedAsync(embed);
                         }
                         else
                         {
-                            foreach (var mdls in modules.Batch(8))
+                            List<EmbedBuilder> embeds = new List<EmbedBuilder>();
+                            foreach (IEnumerable<ModuleInfo> mdls in modules.Batch(8))
                             {
-                                var embd = NormalizeEmbed($"{category.Humanize(LetterCasing.Title)} Commands", null);
-                                foreach (var module in mdls)
+                                foreach (ModuleInfo module in mdls)
+                                {
                                     if (string.IsNullOrWhiteSpace(module.Group))
-                                        foreach (var commandInfo in module.Commands)
+                                    {
+                                        foreach (CommandInfo commandInfo in module.Commands)
+                                        {
                                             embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
                                                 $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
+                                        }
+                                    }
                                     else
+                                    {
                                         embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
                                             $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
+                                    }
+                                }
 
+                                EmbedBuilder embd = NormalizeEmbed($"{category.Humanize(LetterCasing.Title)} Commands", null);
                                 embeds.Add(embd);
                             }
-
                             embeds = MoreEnumerable.ToHashSet(embeds).ToList();
                             await PagedReplyAsync(embeds);
                         }
-
                         return;
                     }
-
                     await ReplyEmbedAsync("Unknown command",
                         $"Couldn't find a command or category for {command}");
                     return;
                 }
-
-                var specificCommand = result.Commands.First().Command;
-                var specificCategory =
+                CommandInfo specificCommand = result.Commands.First().Command;
+                CommandCategory? specificCategory =
                     specificCommand.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category ??
                     specificCommand.Module.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category;
 
@@ -205,7 +221,6 @@ namespace Radon.Modules
                         $"Couldn't find a command or category for {command}");
                     return;
                 }
-
                 embed.WithTitle($"{command.Humanize(LetterCasing.Title)} Command Help")
                     .WithDescription(result.Commands.First().Command.Summary)
                     .AddField("Usage",
@@ -215,70 +230,85 @@ namespace Radon.Modules
                 if (specificCommand.Aliases.Count > 1)
                     embed.AddField("Aliases",
                         string.Join(", ", specificCommand.Aliases.Select(Formatter.InlineCode)));
-
                 await ReplyEmbedAsync(embed);
             }
-
             [Command("")]
             [Summary("Displays all commands")]
             [Priority(-1)]
             public async Task HelpAsync()
             {
-                var embeds = new List<EmbedBuilder>();
-                foreach (var value in Enum.GetValues(typeof(CommandCategory)))
+                List<EmbedBuilder> embeds = new List<EmbedBuilder>();
+                foreach (object value in Enum.GetValues(typeof(CommandCategory)))
                 {
-                    var category = (CommandCategory)value;
+                    CommandCategory category = (CommandCategory)value;
                     if (Server != null && Server.DisabledCategories.Contains(category)) continue;
-                    var embed = NormalizeEmbed($"{category.Humanize(LetterCasing.Title)} Commands",
-                        $"Use {"help <command/category>".InlineCode()} to see more information about a specific command/categoory\n\n{"< >".InlineCode()} indicates a required parameter\n{"( )".InlineCode()} indicates an optional parameter");
-                    var modules = _commands.Modules.Where(x =>
+                    EmbedBuilder embed = NormalizeEmbed($"{category.Humanize(LetterCasing.Title)} Commands",
+                        $"Use {"help <command/category>".InlineCode()} to see more information about a specific command/categoory" +
+                        $"\n\n{"< >".InlineCode()} indicates a required parameter\n{"( )".InlineCode()} indicates an optional parameter");
+                    IEnumerable<ModuleInfo> modules = _commands.Modules.Where(x =>
                         x.Attributes.OfType<CommandCategoryAttribute>().FirstOrDefault()?.Category == category);
-                    if (modules.Count() == 1)
+                    switch (modules.Count())
                     {
-                        foreach (var module in modules)
-                            if (string.IsNullOrWhiteSpace(module.Group))
-                                foreach (var commandInfo in module.Commands)
-                                    embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
-                                        $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
-                            else
-                                embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
-                                    $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
-                        embeds.Add(embed);
-                    }
-                    else
-                    {
-                        var pageEmbeds = new List<EmbedBuilder>();
-                        foreach (var batchedModules in modules.Batch(4))
-                        {
-                            var pageEmbed = NormalizeEmbed(embed);
-                            foreach (var module in batchedModules)
-                                if (string.IsNullOrWhiteSpace(module.Group))
-                                    foreach (var commandInfo in module.Commands)
-                                        embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
-                                            $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
-                                else
-                                    embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
-                                        $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
+                        case 1:
+                            {
+                                foreach (ModuleInfo module in modules)
+                                {
+                                    if (string.IsNullOrWhiteSpace(module.Group))
+                                    {
+                                        foreach (CommandInfo commandInfo in module.Commands)
+                                        {
+                                            embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
+                                                $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
+                                        }
+                                    }
+                                    else
+                                        embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
+                                            $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
+                                }
 
-                            pageEmbeds.Add(pageEmbed);
-                        }
+                                embeds.Add(embed);
+                                break;
+                            }
+                        default:
+                            {
+                                List<EmbedBuilder> pageEmbeds = new List<EmbedBuilder>();
+                                foreach (IEnumerable<ModuleInfo> batchedModules in modules.Batch(4))
+                                {
+                                    foreach (ModuleInfo module in batchedModules)
+                                    {
+                                        if (string.IsNullOrWhiteSpace(module.Group))
+                                        {
+                                            foreach (CommandInfo commandInfo in module.Commands)
+                                            {
+                                                embed.AddField($"{commandInfo.GetName().Humanize(LetterCasing.Title)}",
+                                                    $"{commandInfo.Summary}\n{commandInfo.GetUsage(Context).InlineCode()}");
+                                            }
+                                        }
+                                        else
+                                            embed.AddField($"{module.Group.Humanize(LetterCasing.Title)}",
+                                                $"{module.Summary}\n{module.GetUsage(Context).InlineCode()}");
+                                    }
 
-                        embeds.AddRange(pageEmbeds);
+                                    EmbedBuilder pageEmbed = NormalizeEmbed(embed);
+                                    pageEmbeds.Add(pageEmbed);
+                                }
+                                embeds.AddRange(pageEmbeds);
+                                break;
+                            }
                     }
                 }
-
-                if (embeds.Count == 1)
+                switch (embeds.Count)
                 {
-                    await ReplyAsync(embed: embeds.First().Build());
-                }
-                else
-                {
-                    embeds = MoreEnumerable.ToHashSet(embeds).ToList();
-                    await PagedReplyAsync(embeds);
+                    case 1:
+                        await ReplyAsync(embed: embeds.First().Build());
+                        break;
+                    default:
+                        embeds = MoreEnumerable.ToHashSet(embeds).ToList();
+                        await PagedReplyAsync(embeds);
+                        break;
                 }
             }
         }
-
         [Group("tag")]
         [CommandCategory(CommandCategory.General)]
         [Summary("Lets you create and show tags")]
@@ -289,10 +319,10 @@ namespace Radon.Modules
             [Priority(-1)]
             public async Task TagAsync([Remainder] string tag)
             {
-                var embed = new EmbedBuilder();
-                if (Server.Tags.TryGetValue(tag, out var specificTag))
+                EmbedBuilder embed = new EmbedBuilder();
+                if (Server.Tags.TryGetValue(tag, out Tag specificTag))
                 {
-                    var user = Context.Guild.GetUser(specificTag.AuthorId);
+                    SocketGuildUser user = Context.Guild.GetUser(specificTag.AuthorId);
                     embed.WithTitle($"{specificTag.Name.Humanize(LetterCasing.Title)}")
                         .WithDescription(specificTag.Message)
                         .WithFooter($"by {(user == null ? "invalid-user" : user.Nickname ?? user.Username)}")
@@ -300,23 +330,21 @@ namespace Radon.Modules
                 }
                 else
                 {
-                    var bestMatchingTags = Server.Tags.OrderBy(pair => tag.CalculateDifference(pair.Key))
-                        .Take(3);
                     embed.WithTitle("Tag Not Found")
                         .WithDescription($"Couldn't find a tag for {tag.InlineCode()}");
+                    IEnumerable<KeyValuePair<string, Tag>> bestMatchingTags = Server.Tags.OrderBy(pair => tag.CalculateDifference(pair.Key))
+                        .Take(3);
                     if (bestMatchingTags.Any())
                         embed.Description += string.Join("",
                             bestMatchingTags.Select(x => $"\n- {x.Key.InlineCode()}"));
                 }
-
                 await ReplyEmbedAsync(embed);
             }
-
             [Command("add")]
             [Alias("a")]
             public async Task AddTagAsync(string name, [Remainder] string message)
             {
-                if (Server.Tags.TryGetValue(name, out var tag))
+                if (Server.Tags.TryGetValue(name, out Tag tag))
                 {
                     if (!CheckPermissions(tag)) return;
                     tag.AuthorId = Context.User.Id;
@@ -335,39 +363,34 @@ namespace Radon.Modules
                     };
                     await ReplyEmbedAsync("Tag Added", $"Added the tag {tag.Name.InlineCode()}");
                 }
-
                 Server.Tags[name] = tag;
             }
-
             [Command("make", RunMode = RunMode.Async)]
             [Alias("m")]
             public async Task MakeAsync()
             {
                 await ReplyEmbedAsync("Make A New Tag",
                     $"What should be the name of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var name = (await NextMessageAsync()).Content;
+                string name = (await NextMessageAsync()).Content;
                 if (string.Equals(name, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag creation");
                     return;
                 }
-
                 await ReplyEmbedAsync("Make A New Tag",
                     $"What should be the message of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var message = (await NextMessageAsync()).Content;
+                string message = (await NextMessageAsync()).Content;
                 if (string.Equals(message, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag creation");
                     return;
                 }
-
                 await AddTagAsync(name, message);
             }
-
             [Command("claim")]
             public async Task ClaimAsync([Remainder] string tag)
             {
-                if (Server.Tags.TryGetValue(tag, out var specificTag))
+                if (Server.Tags.TryGetValue(tag, out Tag specificTag))
                 {
                     if (!CheckPermissions(specificTag)) return;
                     specificTag.AuthorId = Context.User.Id;
@@ -383,46 +406,39 @@ namespace Radon.Modules
                         TimeStamp = DateTimeOffset.Now
                     };
                 }
-
                 await ReplyEmbedAsync("Tag Claimed", $"Claimed the tag {specificTag.Name.InlineCode()}");
-
                 Server.Tags[tag] = specificTag;
             }
-
             [Command("edit", RunMode = RunMode.Async)]
             public async Task EditAsync()
             {
                 await ReplyEmbedAsync("Edit Tag",
                     $"What is the name of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var name = (await NextMessageAsync()).Content;
+                String name = (await NextMessageAsync()).Content;
                 if (string.Equals(name, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag editing");
                     return;
                 }
-
                 await EditAsync(name);
             }
-
             [Command("edit", RunMode = RunMode.Async)]
             public async Task EditAsync([Remainder] string name)
             {
                 await ReplyEmbedAsync("Edit Tag",
                     $"What should be the new message of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var message = (await NextMessageAsync()).Content;
+                string message = (await NextMessageAsync()).Content;
                 if (string.Equals(message, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag editing");
                     return;
                 }
-
                 await EditAsync(name, message);
             }
-
             [Command("edit", RunMode = RunMode.Async)]
             public async Task EditAsync(string name, [Remainder] string message)
             {
-                if (Server.Tags.TryGetValue(name, out var tag))
+                if (Server.Tags.TryGetValue(name, out Tag tag))
                 {
                     if (!CheckPermissions(tag)) return;
                     tag.AuthorId = Context.User.Id;
@@ -435,44 +451,38 @@ namespace Radon.Modules
                     await ReplyEmbedAsync("Tag Not Found", $"Couldn't find the tag {name.InlineCode()}");
                     return;
                 }
-
                 Server.Tags[name] = tag;
             }
-
             [Command("alias", RunMode = RunMode.Async)]
             public async Task AliasAsync()
             {
                 await ReplyEmbedAsync("Edit Tag",
                     $"What is the name of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var name = (await NextMessageAsync()).Content;
+                string name = (await NextMessageAsync()).Content;
                 if (string.Equals(name, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag editing");
                     return;
                 }
-
                 await AliasAsync(name);
             }
-
             [Command("alias", RunMode = RunMode.Async)]
             public async Task AliasAsync([Remainder] string name)
             {
                 await ReplyEmbedAsync("Edit Tag",
                     $"What should be the new name of the tag? (Type {"cancel".InlineCode()} to stop)");
-                var newName = (await NextMessageAsync()).Content;
+                string newName = (await NextMessageAsync()).Content;
                 if (string.Equals(newName, "cancel", StringComparison.OrdinalIgnoreCase))
                 {
                     await ReplyEmbedAsync("Cancelled", "Cancelled the tag editing");
                     return;
                 }
-
                 await AliasAsync(name, newName);
             }
-
             [Command("alias", RunMode = RunMode.Async)]
             public async Task AliasAsync(string name, [Remainder] string newname)
             {
-                if (Server.Tags.TryGetValue(name, out var tag))
+                if (Server.Tags.TryGetValue(name, out Tag tag))
                 {
                     if (!CheckPermissions(tag)) return;
                     await ReplyEmbedAsync("Tag Updated",
@@ -485,16 +495,14 @@ namespace Radon.Modules
                     await ReplyEmbedAsync("Tag Not Found", $"Couldn't find the tag {name.InlineCode()}");
                     return;
                 }
-
                 Server.Tags[newname] = tag;
                 Server.Tags.Remove(name);
             }
-
             [Command("delete")]
             [Alias("d", "del")]
             public async Task DeleteAsync([Remainder] string tag)
             {
-                if (Server.Tags.TryGetValue(tag, out var specificTag))
+                if (Server.Tags.TryGetValue(tag, out Tag specificTag))
                 {
                     if (!CheckPermissions(specificTag)) return;
                     Server.Tags.Remove(tag);
@@ -505,7 +513,6 @@ namespace Radon.Modules
                     await ReplyEmbedAsync("Tag Not Found", $"Couldn't find a tag for {tag.InlineCode()}");
                 }
             }
-
             [Command("all")]
             public async Task AllTagsAsync()
             {
@@ -514,11 +521,10 @@ namespace Radon.Modules
                     await ReplyEmbedAsync("No Tags", "There are no tags on this server yet");
                     return;
                 }
-
                 if (Server.Tags.Count > 8)
                 {
-                    var seperatedTags = Server.Tags.Batch(8);
-                    var pages = seperatedTags.Select(tags => tags.Select(tag => $"❯ {tag.Value.Name} ({(DateTime.Now - tag.Value.TimeStamp).Humanize()}) ago")
+                    IEnumerable<IEnumerable<KeyValuePair<string, Tag>>> seperatedTags = Server.Tags.Batch(8);
+                    List<EmbedBuilder> pages = seperatedTags.Select(tags => tags.Select(tag => $"❯ {tag.Value.Name} ({(DateTime.Now - tag.Value.TimeStamp).Humanize()}) ago")
                             .ToList())
                         .Select(tagList => NormalizeEmbed("Tags", string.Join("\n", tagList)))
                         .ToList();
@@ -527,22 +533,20 @@ namespace Radon.Modules
                 }
                 else
                 {
-                    var descriptions = Server.Tags.Select(tag =>
+                    IEnumerable<string> descriptions = Server.Tags.Select(tag =>
                         $"❯ {tag.Value.Name} ({(DateTimeOffset.Now - tag.Value.TimeStamp).Humanize()} ago)");
                     await ReplyEmbedAsync("Tags", string.Join("\n", descriptions));
                 }
             }
-
             private bool CheckPermissions(Tag tag)
             {
-                var target = Context.Guild.GetUser(tag.AuthorId);
+                SocketGuildUser target = Context.Guild.GetUser(tag.AuthorId);
                 if (target == null) return true;
                 if (target.Id == Context.User.Id) return true;
 
                 return target.Hierarchy < ((SocketGuildUser)Context.User).Hierarchy;
             }
         }
-
         [Group("profile")]
         [Alias("p")]
         [CommandCategory(CommandCategory.General)]
@@ -550,22 +554,17 @@ namespace Radon.Modules
         public class ProfileModule : CommandBase
         {
             [Command("")]
-            public async Task ProfileAsync()
-            {
-                await ProfileAsync((SocketGuildUser)Context.User);
-            }
-
+            public async Task ProfileAsync() => await ProfileAsync((SocketGuildUser)Context.User);
             [Command("")]
             public async Task ProfileAsync(SocketGuildUser user)
             {
-                var embed = new EmbedBuilder()
+                EmbedBuilder embed = new EmbedBuilder()
                     .WithAuthor($"{user.Nickname ?? user.Username}'s profile", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                     .WithDescription($"Id ❯ {user.Id}" +
                                      $"\nJoined This Server ❯ {user.JoinedAt:dd.MM.yyyy HH:mm:ss} ({user.JoinedAt.Humanize()})" +
                                      $"\nJoined Discord ❯ {user.CreatedAt:dd.MM.yyyy HH:mm:ss} ({user.CreatedAt.Humanize()})" +
                                      $"\nPosition ❯ {(user.Hierarchy == int.MaxValue ? Context.Guild.Roles.Max(x => x.Position) : user.Hierarchy)}/{Context.Guild.Roles.Max(x => x.Position)}" +
                                      $"\nStatus ❯ {user.Status.Humanize(LetterCasing.Title)}");
-
                 await ReplyEmbedAsync(embed);
             }
         }
