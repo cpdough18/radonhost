@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Radon.Core;
 using SharpLink;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 

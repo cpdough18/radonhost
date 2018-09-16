@@ -69,23 +69,20 @@ namespace Radon.Services.Nsfw
                     if (data[stuff]["tags"].ToString().ToLower().Contains("animated") || data[stuff]["tags"].ToString().ToLower().Contains("animation") && data[stuff]["file_ext"].ToString() != "gif")
                     {
 
-                        await context.Channel.SendMessageAsync(
-                            $"{data[stuff]["author"]}" +
-                            $" | {data[stuff]["tags"].ToString().WithMaxLength(30)} | {data[stuff]["source"]}" +
-                            $" | {data[stuff]["file_url"]}" +
-                            $" | <:upvote:486361126658113536> {data[stuff]["score"]}" +
-                            $" | :heart: {data[stuff]["fav_count"]}" +
-                            $" | {emote}");
+                        var embed = new EmbedBuilder()
+                        .WithTitle($"{data[stuff]["author"]} | {data[stuff]["tags"].ToString().WithMaxLength(30)}")
+                        .WithUrl($"{data[stuff]["source"]}")
+                        .AddField("Statistics", $"<:upvote:486361126658113536> {data[stuff]["score"]} | :heart: {data[stuff]["fav_count"]} | {emote}");
+                        await context.Channel.SendMessageAsync(embed: embed.Build(), text: $"{data[stuff]["file_url"]}");
 
                     }
                     else
                     {
-
                         var embed = new EmbedBuilder()
                         .WithTitle($"{data[stuff]["author"]} | {data[stuff]["tags"].ToString().WithMaxLength(30)}")
                         .WithUrl($"{data[stuff]["source"]}")
                         .WithImageUrl($"{data[stuff]["file_url"]}")
-                        .AddField("Statistics",$"<:upvote:486361126658113536> {data[stuff]["score"]} | :heart: {data[stuff]["fav_count"]} | {emote}");
+                        .AddField("Statistics", $"<:upvote:486361126658113536> {data[stuff]["score"]} | :heart: {data[stuff]["fav_count"]} | {emote}");
                         await context.Channel.SendMessageAsync(embed: embed.Build());
                     }
                     _httpClient.DefaultRequestHeaders.Authorization = null;

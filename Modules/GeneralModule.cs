@@ -25,8 +25,10 @@ namespace Radon.Modules
     {
         private readonly CommandService _commands;
         private readonly Configuration _configuration;
-        public GeneralModule(CommandService commands, Configuration configuration)
+        private readonly DiscordShardedClient _client;
+        public GeneralModule(DiscordShardedClient client, CommandService commands, Configuration configuration)
         {
+            _client = client;
             _commands = commands;
             _configuration = configuration;
         }
@@ -118,9 +120,15 @@ namespace Radon.Modules
         {
             foreach (ulong item in _configuration.OwnerIds)
             {
+                EmbedBuilder builder = new EmbedBuilder()
+                    .WithTitle("Feedback message:")
+                    .AddField($"From: {Context.User.Username.ToString()}", $"{message}")
+                    .WithCurrentTimestamp();
 
+                IDMChannel dmChannel = await _client.GetUser(item).GetOrCreateDMChannelAsync();
+                await dmChannel.SendMessageAsync(embed: builder.Build());
             }
-            EmbedBuilder embed = new EmbedBuilder().WithTitle("Thanks for your feedback");
+            EmbedBuilder embed = new EmbedBuilder().WithTitle("Thanks for your feedback").WithCurrentTimestamp();
             await ReplyEmbedAsync(embed: embed);
         }
         [CommandCategory(CommandCategory.General)]

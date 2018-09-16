@@ -80,6 +80,7 @@ namespace Radon.Core
                 .AddSingleton<CachingService>()
                 .AddSingleton<ServerService>()
                 .AddSingleton<NSFWService>()
+                .AddSingleton<KsoftBanApiService>()
                 .AddSingleton<SharplinkService>()
                 .BuildServiceProvider();
             _services.GetService<LogService>();

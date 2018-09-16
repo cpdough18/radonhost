@@ -93,20 +93,20 @@ namespace Radon.Modules
         {
             private readonly NSFWService _nsfwService;
 
-            public E621(NSFWService nsfwService)
-            {
-                _nsfwService = nsfwService;
-            }
+            public E621(NSFWService nsfwService) => _nsfwService = nsfwService;
 
-            [Command("E621")]
+            [Command("")]
             [Alias("e6")]
             public async Task E621Async(int count, [Remainder] string tags)
             {
                 if (count > 10)
+                {
                     count = 10;
+                }
+
                 await _nsfwService.GetE621Async(Context, count, tags);
             }
-            [Command("E621")]
+            [Command("")]
             [Alias("e6")]
             public async Task E621Async([Remainder] string tags)
             {

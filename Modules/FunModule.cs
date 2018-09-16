@@ -6,6 +6,7 @@ using GiphyDotNet.Model.Parameters;
 using Newtonsoft.Json.Linq;
 using Radon.Core;
 using Radon.Services;
+using Radon.Services.External;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -313,6 +314,39 @@ namespace Radon.Modules
 
                 await ReplyEmbedAsync(embed);
             }
+        }
+        [Command("clyde")]
+        [Summary("Clyde-ifes text")]
+        public async Task ClydeAsync([Remainder] string text)
+        {
+            string link = $"{JObject.Parse(await _httpClient.GetStringAsync($"https://nekobot.xyz/api/imagegen?type=clyde&text={ text }"))["message"]}";
+            EmbedBuilder embed = new EmbedBuilder()
+               .WithImageUrl(link);
+            await ReplyEmbedAsync(embed: embed);
+        }
+        [Command("ship")]
+        [Summary("Ships two people")]
+        public async Task ShipAsync(IUser user2 = null, IUser user1 = null)
+        {
+            if (user1 == null)
+                user1 = Context.Message.Author;
+            if (user2 == null)
+                await ReplyEmbedAsync(NormalizeEmbed("Error", "You must provide a target user"));
+
+            string link = $"{JObject.Parse(await _httpClient.GetStringAsync($"https://nekobot.xyz/api/imagegen?type=ship&user1={user1.GetAvatarUrl().ToString()}&user2={user2.GetAvatarUrl().ToString()}"))["message"]}";
+            EmbedBuilder embed = new EmbedBuilder()
+               .WithImageUrl(link.ToString());
+            await ReplyEmbedAsync(embed: embed);
+        }
+        [Command("kannagen")]
+        [Alias("kanna", "kg")]
+        [Summary("Kannafies text")]
+        public async Task KannaAsync([Remainder]string text)
+        {
+            string link = $"{JObject.Parse(await _httpClient.GetStringAsync($"https://nekobot.xyz/api/imagegen?type=kannagen&text={ text }"))["message"]}";
+            EmbedBuilder embed = new EmbedBuilder()
+               .WithImageUrl(link);
+            await ReplyEmbedAsync(embed: embed);
         }
     }
 }
