@@ -1,6 +1,6 @@
 const Eris = require('eris');
  
-const bot = new Eris(process.env.NDkzNzg3Mzc4MjU1NjU5MDA4.DoqHgQ.7BdS0JYMB8mgHVdw6JyGrP6kHY4);   // Replace DISCORD_BOT_TOKEN in .env with your bot accounts token
+const bot = new Eris(process.env.NTIxNzEwNDA3NzgyNDk4MzA0.DvA0KA.yhuzaYl_1BBP9fY-ifCEBtvGPu0);   // Replace DISCORD_BOT_TOKEN in .env with your bot accounts token
  
 bot.on('ready', () => {                                // When the bot is ready
     console.log('Ready!');                             // Log "Ready!"
