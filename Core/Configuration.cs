@@ -14,7 +14,7 @@ namespace Radon.Core
 
         [JsonProperty("BotPrefixes")] public readonly string[] BotPrefixes = { "$" };
 
-        [JsonProperty("BotToken")] public readonly string BotToken = "";
+        [JsonProperty("BotToken")] public readonly string BotToken = "NTIxNzEwNDA3NzgyNDk4MzA0.DvA0KA.yhuzaYl_1BBP9fY-ifCEBtvGPu0";
 
         [JsonProperty("DatabaseConnectionString")] public readonly string DatabaseConnectionString = "http://127.0.0.1:8080";
 
